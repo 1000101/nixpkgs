@@ -26474,4 +26474,6 @@ in
 
   vpsfree-client = callPackage ../tools/virtualization/vpsfree-client {};
 
+  sudo_pair = callPackage ../tools/security/sudo_pair { };
+
 }
