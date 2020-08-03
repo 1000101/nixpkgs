@@ -7,6 +7,7 @@ import ./make-test-python.nix ({ pkgs, ... }: {
   machine = { ... }: {
     services.blockbook-frontend."test" = {
       enable = true;
+      listen.port = 9130;
     };
     services.bitcoind.mainnet = {
       enable = true;
@@ -21,8 +22,8 @@ import ./make-test-python.nix ({ pkgs, ... }: {
     start_all()
     machine.wait_for_unit("blockbook-frontend-test.service")
 
-    machine.wait_for_open_port(9030)
+    machine.wait_for_open_port(9130)
 
-    machine.succeed("curl -sSfL http://localhost:9030 | grep 'Blockbook'")
+    machine.succeed("curl -sSfL http://localhost:9130 | grep 'Blockbook'")
   '';
 })

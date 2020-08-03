@@ -79,13 +79,6 @@ let
         description = "Debug mode, return more verbose errors, reload templates on each request.";
       };
 
-      internal = mkOption {
-        type = types.nullOr types.str;
-        default = ":9030";
-        example = ":9030";
-        description = "Internal http server binding <literal>[address]:port</literal>.";
-      };
-
       messageQueueBinding = mkOption {
         type = types.str;
         default = "tcp://127.0.0.1:38330";
@@ -93,11 +86,42 @@ let
         description = "Message Queue Binding <literal>address:port</literal>.";
       };
 
-      public = mkOption {
-        type = types.nullOr types.str;
-        default = ":9130";
-        example = ":9130";
-        description = "Public http server binding <literal>[address]:port</literal>.";
+      internal = {
+        address = mkOption {
+          type = types.nullOr types.str;
+          default = "";
+          example = "0.0.0.0";
+          description = "Internal http server binding address.";
+        };
+
+        port = mkOption {
+          type = types.nullOr types.port;
+          default = null;
+          example = 9030;
+          description = "Internal http server binding port.";
+        };
+      };
+
+      listen = {
+        address = mkOption {
+          type = types.nullOr types.str;
+          default = "";
+          example = "0.0.0.0";
+          description = "Public http server binding address.";
+        };
+
+        port = mkOption {
+          type = types.nullOr types.port;
+          default = null;
+          example = 9130;
+          description = "Public http server binding port.";
+        };
+      };
+
+      openFirewall = mkOption {
+        type = types.bool;
+        default = false;
+        description = "Open ports in the firewall for the Blockbook explorer web interface.";
       };
 
       rpc = {
@@ -203,6 +227,10 @@ in
 
   config = mkIf (eachBlockbook != {}) {
 
+    networking.firewall.allowedTCPPorts = flatten (mapAttrsToList (blockbookName: cfg: 
+      optional cfg.openFirewall [ cfg.listen.port ]
+    ) eachBlockbook);
+
     systemd.services = mapAttrs' (blockbookName: cfg: (
       nameValuePair "blockbook-frontend-${blockbookName}" (
         let
@@ -242,8 +270,8 @@ in
                ${optionalString (cfg.sync != false) "-sync"} \
                ${optionalString (cfg.certFile != null) "-certfile=${toString cfg.certFile}"} \
                ${optionalString (cfg.debug != false) "-debug"} \
-               ${optionalString (cfg.internal != null) "-internal=${toString cfg.internal}"} \
-               ${optionalString (cfg.public != null) "-public=${toString cfg.public}"} \
+               ${optionalString (cfg.internal.port != null) "-internal=${toString cfg.internal.address}:${toString cfg.internal.port}"} \
+               ${optionalString (cfg.listen.port != null) "-public=${toString cfg.listen.address}:${toString cfg.listen.port}"} \
                ${toString cfg.extraCmdLineOptions}
             '';
             Restart = "on-failure";
