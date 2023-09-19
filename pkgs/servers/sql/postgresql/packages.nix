@@ -26,6 +26,8 @@ self: super: {
 
     pg_similarity = super.callPackage ./ext/pg_similarity.nix { };
 
+    pg_strom = super.callPackage ./ext/pg_strom.nix { };
+
     pgaudit = super.callPackage ./ext/pgaudit.nix { };
 
     pgroonga = super.callPackage ./ext/pgroonga.nix { };
